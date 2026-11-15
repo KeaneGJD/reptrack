@@ -252,6 +252,30 @@ details.home-expand>.week-plan{margin-top:14px}
 details.card.home-expand{padding:15px 18px}
 #view>.grid{margin:12px 0}
 @media(max-width:420px){details.card.home-expand{padding:13px 15px}}
+
+.hunter-sheet{padding:26px 19px 23px}
+.hunter-sheet-label{font-size:10px;font-weight:800;letter-spacing:.18em;color:var(--accent);margin:3px 0 13px}
+.hunter-sheet .status-emblem{width:120px;height:120px;margin:14px auto 23px}
+.hunter-sheet .status-emblem span{font-size:70px}
+.hunter-sheet h2{font-size:clamp(23px,6vw,31px)}
+.hunter-sheet h2 small{font-size:.5em;color:var(--muted)}
+.hunter-level-line{display:flex;justify-content:space-between;gap:12px;margin:21px 2px 8px;font-size:12px;font-weight:800}
+.hunter-xp{height:11px;margin:0 0 9px}
+.hunter-xp>div{animation:hunterXpFill .85s ease-out both;transform-origin:left}
+@keyframes hunterXpFill{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.hunter-badge-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:17px 0}
+.hunter-badge{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;min-width:0;min-height:110px;padding:12px 6px;border:1px solid var(--line);border-radius:14px;background:var(--panel2);color:var(--text);text-align:center;cursor:pointer}
+.hunter-badge.earned{border-color:var(--accent);box-shadow:0 0 14px color-mix(in srgb,var(--accent) 18%,transparent)}
+.hunter-badge.unearned{opacity:.56;filter:saturate(.45)}
+.hunter-badge-icon{font-size:29px;color:var(--accent);line-height:1}
+.hunter-badge-name{font-size:10px;font-weight:800;overflow-wrap:anywhere;line-height:1.35}
+.hunter-badge-detail{border-top:1px solid var(--line);padding:14px 2px 2px;min-height:52px;font-size:13px;line-height:1.5}
+.hunter-badge-detail p{margin:7px 0 10px}
+.hunter-status-links{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:13px 0}
+.hunter-status-links button:last-child{grid-column:1/-1}
+body[data-theme="system"] .hunter-sheet{background:radial-gradient(ellipse at 50% 19%,#2b286a65,transparent 56%),var(--panel)}
+@media(max-width:360px){.hunter-badge-grid{gap:7px}.hunter-badge{min-height:103px;padding:10px 4px}.hunter-badge-name{font-size:9px}}
+@media(prefers-reduced-motion:reduce){.hunter-xp>div{animation:none}}
 </style></head><body><header><div class="header-inner"><div><h1>💪 RepTrack</h1><div class="muted">Your training. Your progress. Your rules.</div></div><button id="profileAvatar" class="profile-avatar" onclick="go('profile')" aria-label="Open your profile" title="Hunter profile">◯</button></div></header><main class="wrap"><div id="view"></div></main><nav id="nav"></nav><div id="celebrationRoot"></div><div id="restRoot"></div><div id="libraryRoot"></div><div id="systemToast" class="system-toast" role="status" aria-live="polite"></div><script>
 /* Scroll-linked System Ascendant highlights. */
 (function(){
@@ -331,11 +355,31 @@ function achievementData(){const sessions=data.sessions.filter(s=>(s.sets||[]).s
 ['CENTURY','Complete 100 sets',sets>=100,'◈'],
 ['CHECK-IN','Log 5 weigh-ins',data.weights.length>=5,'◇']
 ]}
-function playerStatus(){recordRank();const lv=levelInfo(),rs=rankStatus(),best=achievedRank(),badges=achievementData(),unlocked=badges.filter(x=>x[2]).length;const rankNames={E:'Awakening',D:'Initiate',C:'Strider',B:'Sentinel',A:'Vanguard',S:'Ascendant'};const completed=data.sessions.filter(s=>(s.sets||[]).some(x=>x.done)).length;const sets=data.sessions.reduce((n,s)=>n+(s.sets||[]).filter(x=>x.done).length,0);const mins=data.walks.reduce((n,w)=>n+(Number(w.minutes)||0),0);
-$('view').innerHTML=`<div class="system-kicker"><span class="system-dot"></span> ${esc(profileName().toUpperCase())} · PLAYER STATUS <span class="system-id">PERSONAL SYSTEM</span></div><div class="card status-hero"><div class="status-emblem"><span>${best}</span></div><h2>${rankNames[best]} · Rank ${best}</h2><p class="muted">Highest rank achieved · Never lost to daily fluctuations</p><div class="row" style="justify-content:center"><span class="pill">LEVEL ${lv.level}</span><span class="pill">${lv.xp} XP TOTAL</span></div><div class="xp-track" style="margin-top:16px"><div style="width:${lv.within/5}%"></div></div><small>${lv.within} / 500 XP to next level</small></div>
+function hunterBadgeDetails(i){const a=achievementData()[i],el=document.getElementById('hunterBadgeDetail');if(a&&el)el.innerHTML=`<b>${esc(a[0])}</b><p>${esc(a[1])}</p><span class="pill">${a[2]?'UNLOCKED':'LOCKED'}</span>`}
+function playerStatus(){
+recordRank();
+const lv=levelInfo(),rs=rankStatus(),best=achievedRank(),badges=achievementData(),unlocked=badges.filter(x=>x[2]).length;
+const names={E:'Awakening',D:'Initiate',C:'Strider',B:'Sentinel',A:'Vanguard',S:'Ascendant'};
+const completed=data.sessions.filter(s=>(s.sets||[]).some(x=>x.done)).length;
+const sets=data.sessions.reduce((n,s)=>n+(s.sets||[]).filter(x=>x.done).length,0);
+const mins=data.walks.reduce((n,w)=>n+(Number(w.minutes)||0),0);
+$('view').innerHTML=`<div class="system-kicker"><span class="system-dot"></span> ${esc(profileName().toUpperCase())} · HUNTER STATUS</div>
+<div class="card status-hero hunter-sheet">
+<div class="hunter-sheet-label">HUNTER CLASSIFICATION</div><div class="status-emblem"><span>${best}</span></div>
+<h2>Rank ${best} <small>· ${names[best]}</small></h2><p class="muted">Highest rank achieved</p>
+<div class="hunter-level-line"><span>LEVEL ${lv.level}</span><span>${lv.xp} TOTAL XP</span></div>
+<div class="xp-track hunter-xp"><div style="width:${Math.max(0,Math.min(100,lv.within/5))}%"></div></div><small>${lv.within} / 500 XP to next level</small></div>
 <div class="status-metrics"><div class="stat"><small>Workouts</small><strong>${completed}</strong></div><div class="stat"><small>Sets</small><strong>${sets}</strong></div><div class="stat"><small>Walking</small><strong>${mins}<span style="font-size:11px"> min</span></strong></div></div>
-<div class="card"><div class="row"><h3 style="margin:0">Training goals</h3><button onclick="go('settings')">Edit goals</button></div><p><b>Weekly consistency:</b> ${rs.training.week} / ${rs.training.target} workouts in the last 7 days</p><div class="goal-track"><div style="width:${rs.training.consistency}%"></div></div><p><b>Strength milestones:</b> ${rs.training.improvements} / ${rs.training.strengthTarget} improvements recorded</p><div class="goal-track"><div style="width:${rs.training.strength}%"></div></div>${rs.goal?`<p><b>Weight goal:</b> ${rs.goal.current==null?'Log a weigh-in to track progress':`${Math.round(rs.goal.pct)}% towards ${rs.goal.target} kg`}</p><div class="goal-track"><div style="width:${rs.goal.pct}%"></div></div>`:''}<p class="muted" style="font-size:12px">Current rank eligibility uses XP and training progress (60% consistency, 40% strength). Body weight is tracked separately; highest earned rank stays permanent. Strength improvements are based on completed sets recorded across sessions.</p></div>
-<div class="card"><div class="row"><h3 style="margin:0">Achievements</h3><small>${unlocked} / ${badges.length} unlocked</small></div>${badges.map(a=>`<div class="achievement ${a[2]?'':'locked'}"><div class="achievement-icon">${a[3]}</div><div class="detail"><b>${a[0]}</b><small>${a[1]}</small></div><span class="pill">${a[2]?'UNLOCKED':'LOCKED'}</span></div>`).join('')}</div><div class="card"><h3>Walking milestones</h3><p class="muted">Your walking achievements are also available on the Walking tab.</p><button onclick="go('walking')">View walking achievements →</button></div><button onclick="go('progress')">View strength records →</button> <button onclick="go('history')">View workout history →</button>`}
+<div class="card"><div class="row"><h3 style="margin:0">Achievement Collection</h3><small>${unlocked} / ${badges.length}</small></div>
+<div class="hunter-badge-grid">${badges.map((a,i)=>`<button class="hunter-badge ${a[2]?'earned':'unearned'}" onclick="hunterBadgeDetails(${i})"><span class="hunter-badge-icon">${a[3]}</span><span class="hunter-badge-name">${esc(a[0])}</span></button>`).join('')}</div>
+<div class="hunter-badge-detail muted" id="hunterBadgeDetail">Tap a badge to view its requirements.</div></div>
+<details class="card home-expand"><summary>Training goals and rank eligibility</summary>
+<p><b>Weekly consistency:</b> ${rs.training.week} / ${rs.training.target} workouts in the last 7 days</p><div class="goal-track"><div style="width:${rs.training.consistency}%"></div></div>
+<p><b>Strength milestones:</b> ${rs.training.improvements} / ${rs.training.strengthTarget} improvements recorded</p><div class="goal-track"><div style="width:${rs.training.strength}%"></div></div>
+${rs.goal?`<p><b>Weight goal:</b> ${rs.goal.current==null?'Log a weigh-in to track progress':`${Math.round(rs.goal.pct)}% towards ${rs.goal.target} kg`}</p><div class="goal-track"><div style="width:${rs.goal.pct}%"></div></div>`:''}
+<p class="muted">Highest earned rank stays permanent. Rank eligibility uses XP and training progress.</p><button onclick="go('settings')">Edit goals</button></details>
+<div class="hunter-status-links"><button onclick="go('progress')">Fitness progress →</button><button onclick="go('history')">Workout history →</button><button onclick="go('walking')">Walking milestones →</button></div>`;
+}
 
 function hunterClose(){const el=$('celebrationRoot');if(el)el.innerHTML=''}
 function hunterTransformation(oldValue,newValue,kind){
